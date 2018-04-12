@@ -1,11 +1,11 @@
 package com.waracle.androidtest;
 
 import android.annotation.SuppressLint;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.format.Time;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,21 +15,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fragment is responsible for loading in some JSON and
@@ -44,30 +43,42 @@ public class CakeBrowserFragment extends Fragment {
 
     private static final String TAG = CakeBrowserFragment.class.getSimpleName();
 
-    private ListView mListView;
-    private MyAdapter mAdapter;
-
-    public CakeBrowserFragment() { /**/ }
+    private RecyclerView recyclerView;
+    private CakeAdapter cakeAdapter;
+    private List<Cake> cakeList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setHasOptionsMenu(true);
+
+        cakeList  = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        mListView = (ListView) rootView.findViewById(R.id.cakelist);
 
-        // Create and set the list adapter.
-        mAdapter = new MyAdapter();
-        mListView.setAdapter(mAdapter);
+        recyclerView = rootView.findViewById(R.id.recyclerView);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(layoutManager);
+
+        cakeAdapter = new CakeAdapter(cakeList);
+        recyclerView.setAdapter(cakeAdapter);
 
         //loadData();
 
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        loadData();
     }
 
     @Override
@@ -93,11 +104,11 @@ public class CakeBrowserFragment extends Fragment {
     }
 
 
-    private void loadData()  {
+    private void loadData() {
         new LoadDataAsyncTask().execute(JSON_URL);
     }
 
-    private  class LoadDataAsyncTask extends AsyncTask<String, Void, Void> {
+    private class LoadDataAsyncTask extends AsyncTask<String, Void, Void> {
 
         @Override
         protected Void doInBackground(String... urls) {
@@ -175,6 +186,13 @@ public class CakeBrowserFragment extends Fragment {
             return null;
         }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            cakeAdapter.setCakes(cakeList);
+        }
+
         private void getCakeDataFromJson(String cakeJsonString)
                 throws JSONException {
 
@@ -185,115 +203,95 @@ public class CakeBrowserFragment extends Fragment {
 
             JSONArray array = new JSONArray(cakeJsonString);
 
-            for (int i=0; i<array.length(); i++){
-
+            for (int i = 0; i < array.length(); i++) {
                 JSONObject object = array.getJSONObject(i);
 
-                CakeData data = new CakeData(object.getString(TITLE),object.getString(DESCRIPTION),
+                Cake cake = new Cake(object.getString(TITLE), object.getString(DESCRIPTION),
                         object.getString(IMAGE_LINK));
 
-                data_list.add(data);
+                cakeList.add(cake);
+            }
         }
+    }
 
-        @Override
-        protected void onPostExecute(JSONArray result) {
-//            if (result != null) {
-//                mForecastAdapter.clear();
-//                for(String dayForecastStr : result) {
-//                    mForecastAdapter.add(dayForecastStr);
+/**
+ * Returns the charset specified in the Content-Type of this header,
+ * or the HTTP default (ISO-8859-1) if none can be found.
+ */
+//    public static String parseCharset(String contentType) {
+//        if (contentType != null) {
+//            String[] params = contentType.split(",");
+//            for (int i = 1; i < params.length; i++) {
+//                String[] pair = params[i].trim().split("=");
+//                if (pair.length == 2) {
+//                    if (pair[0].equals("charset")) {
+//                        return pair[1];
+//                    }
 //                }
-//                // New data is back from the server.  Hooray!
 //            }
+//        }
+//        return "UTF-8";
+//    }
 
-            if(result != null) {
-
-                mAdapter.setItems(result);
-
-            }
-
-      }
-
-
-    }
-
-    /**
-     * Returns the charset specified in the Content-Type of this header,
-     * or the HTTP default (ISO-8859-1) if none can be found.
-     */
-    public static String parseCharset(String contentType) {
-        if (contentType != null) {
-            String[] params = contentType.split(",");
-            for (int i = 1; i < params.length; i++) {
-                String[] pair = params[i].trim().split("=");
-                if (pair.length == 2) {
-                    if (pair[0].equals("charset")) {
-                        return pair[1];
-                    }
-                }
-            }
-        }
-        return "UTF-8";
-    }
-
-    private class MyAdapter extends BaseAdapter {
-
-        // Can you think of a better way to represent these items???
-        private JSONArray mItems;
-        private ImageLoader mImageLoader;
-
-        public MyAdapter() {
-            this(new JSONArray());
-        }
-
-        public MyAdapter(JSONArray items) {
-            mItems = items;
-            mImageLoader = new ImageLoader();
-        }
-
-        @Override
-        public int getCount() {
-            return mItems.length();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            try {
-                return mItems.getJSONObject(position);
-            } catch (JSONException e) {
-                Log.e("", e.getMessage());
-            }
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @SuppressLint("ViewHolder")
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = LayoutInflater.from(getActivity());
-            View root = inflater.inflate(R.layout.list_item_layout, parent, false);
-            if (root != null) {
-                TextView title = (TextView) root.findViewById(R.id.title);
-                TextView desc = (TextView) root.findViewById(R.id.description);
-                ImageView image = (ImageView) root.findViewById(R.id.image);
-                try {
-                    JSONObject object = (JSONObject) getItem(position);
-                    title.setText(object.getString("title"));
-                    desc.setText(object.getString("desc"));
-                    mImageLoader.load(object.getString("image"), image);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return root;
-        }
-
-        public void setItems(JSONArray items) {
-            mItems = items;
-        }
-    }
+//    private class MyAdapter extends BaseAdapter {
+//
+//        // Can you think of a better way to represent these items???
+//        private JSONArray mItems;
+//        private ImageLoader mImageLoader;
+//
+//        public MyAdapter() {
+//            this(new JSONArray());
+//        }
+//
+//        public MyAdapter(JSONArray items) {
+//            mItems = items;
+//            mImageLoader = new ImageLoader();
+//        }
+//
+//        @Override
+//        public int getCount() {
+//            return mItems.length();
+//        }
+//
+//        @Override
+//        public Object getItem(int position) {
+//            try {
+//                return mItems.getJSONObject(position);
+//            } catch (JSONException e) {
+//                Log.e("", e.getMessage());
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        public long getItemId(int position) {
+//            return 0;
+//        }
+//
+//        @SuppressLint("ViewHolder")
+//        @Override
+//        public View getView(int position, View convertView, ViewGroup parent) {
+//            LayoutInflater inflater = LayoutInflater.from(getActivity());
+//            View root = inflater.inflate(R.layout.list_item_layout, parent, false);
+//            if (root != null) {
+//                TextView title = (TextView) root.findViewById(R.id.title);
+//                TextView desc = (TextView) root.findViewById(R.id.description);
+//                ImageView image = (ImageView) root.findViewById(R.id.image);
+//                try {
+//                    JSONObject object = (JSONObject) getItem(position);
+//                    title.setText(object.getString("title"));
+//                    desc.setText(object.getString("desc"));
+//                    mImageLoader.load(object.getString("image"), image);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            return root;
+//        }
+//
+//        public void setItems(JSONArray items) {
+//            mItems = items;
+//        }
+//    }
 }

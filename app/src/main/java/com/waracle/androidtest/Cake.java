@@ -1,11 +1,11 @@
 package com.waracle.androidtest;
 
-public class CakeData {
+public class Cake {
     private String title;
     private String description;
     private String imageLink;
 
-    public CakeData(String title, String description, String imageLink) {
+    public Cake(String title, String description, String imageLink) {
         this.title = title;
         this.description = description;
         this.imageLink = imageLink;
