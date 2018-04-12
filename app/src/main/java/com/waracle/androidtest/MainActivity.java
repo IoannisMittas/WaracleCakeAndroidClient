@@ -2,6 +2,7 @@ package com.waracle.androidtest;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
      * Improve any performance issues
      * Use good coding practices to make code more secure
      */
-    public static class PlaceholderFragment extends ListFragment {
+    public static class PlaceholderFragment extends Fragment {
 
         private static final String TAG = PlaceholderFragment.class.getSimpleName();
 
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            mListView = (ListView) rootView.findViewById(R.id.list);
+            mListView = (ListView) rootView.findViewById(R.id.cakelist);
             return rootView;
         }
 
