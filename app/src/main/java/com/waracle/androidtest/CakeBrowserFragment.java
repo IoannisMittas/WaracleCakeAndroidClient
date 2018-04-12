@@ -99,118 +99,8 @@ public class CakeBrowserFragment extends Fragment {
 
     private  class LoadDataAsyncTask extends AsyncTask<String, Void, Void> {
 
-        private String[] getCakeDataFromJson(String cakeJsonString)
-                throws JSONException {
-
-            // These are the names of the JSON objects that need to be extracted.
-            final String TITLE = "title";
-            final String DESCRIPTION = "desc";
-            final String IMAGE_LINK = "image";
-
-            JSONObject forecastJson = new JSONObject(cakeJsonString);
-            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
-
-            // OWM returns daily forecasts based upon the local time of the city that is being
-            // asked for, which means that we need to know the GMT offset to translate this data
-            // properly.
-
-            // Since this data is also sent in-order and the first day is always the
-            // current day, we're going to take advantage of that to get a nice
-            // normalized UTC date for all of our weather.
-
-            Time dayTime = new Time();
-            dayTime.setToNow();
-
-            // we start at the day returned by local time. Otherwise this is a mess.
-            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
-
-            // now we work exclusively in UTC
-            dayTime = new Time();
-
-            String[] resultStrs = new String[numDays];
-            for(int i = 0; i < weatherArray.length(); i++) {
-                // For now, using the format "Day, description, hi/low"
-                String day;
-                String description;
-                String highAndLow;
-
-                // Get the JSON object representing the day
-                JSONObject dayForecast = weatherArray.getJSONObject(i);
-
-                // The date/time is returned as a long.  We need to convert that
-                // into something human-readable, since most people won't read "1400356800" as
-                // "this saturday".
-                long dateTime;
-                // Cheating to convert this to UTC time, which is what we want anyhow
-                dateTime = dayTime.setJulianDay(julianStartDay+i);
-                day = getReadableDateString(dateTime);
-
-                // description is in a child array called "weather", which is 1 element long.
-                JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-                description = weatherObject.getString(OWM_DESCRIPTION);
-
-                // Temperatures are in a child object called "temp".  Try not to name variables
-                // "temp" when working with temperature.  It confuses everybody.
-                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                double high = temperatureObject.getDouble(OWM_MAX);
-                double low = temperatureObject.getDouble(OWM_MIN);
-
-                highAndLow = formatHighLows(high, low);
-                resultStrs[i] = day + " - " + description + " - " + highAndLow;
-            }
-
-            for (String s : resultStrs) {
-                Log.v(LOG_TAG, "Forecast entry: " + s);
-            }
-            return resultStrs;
-
-        }
-
         @Override
         protected Void doInBackground(String... urls) {
-//            String jsonUrlString = urls[0];
-//
-//            URL url = null;
-//            try {
-//                url = new URL(jsonUrlString);
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            }
-//
-//            HttpURLConnection urlConnection = null;
-//            try {
-//                urlConnection = (HttpURLConnection) url.openConnection();
-//                urlConnection.setRequestMethod("GET");
-//                urlConnection.connect();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            try {
-//                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-//
-//                // Can you think of a way to improve the performance of loading data
-//                // using HTTP headers???
-//
-//                // Also, Do you trust any utils thrown your way????
-//
-//                byte[] bytes = StreamUtils.readUnknownFully(in);
-//
-//                // Read in charset of HTTP content.
-//                String charset = parseCharset(urlConnection.getRequestProperty("Content-Type"));
-//
-//                // Convert byte array to appropriate encoded string.
-//                String jsonText = new String(bytes, charset);
-//
-//                // Read string as JSON.
-//                return new JSONArray(jsonText);
-//            } catch (IOException | JSONException e) {
-//                Log.e(TAG, e.getMessage());
-//            } finally {
-//                urlConnection.disconnect();
-//            }
-//            return null;
-
             if (urls.length == 0) {
                 return null;
             }
@@ -275,7 +165,7 @@ public class CakeBrowserFragment extends Fragment {
             }
 
             try {
-                return getCakeDataFromJson(cakeJsonString);
+                getCakeDataFromJson(cakeJsonString);
             } catch (JSONException e) {
                 Log.e(TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -283,6 +173,26 @@ public class CakeBrowserFragment extends Fragment {
 
             // This will only happen if there was an error getting or parsing the data.
             return null;
+        }
+
+        private void getCakeDataFromJson(String cakeJsonString)
+                throws JSONException {
+
+            // These are the names of the JSON objects that need to be extracted.
+            final String TITLE = "title";
+            final String DESCRIPTION = "desc";
+            final String IMAGE_LINK = "image";
+
+            JSONArray array = new JSONArray(cakeJsonString);
+
+            for (int i=0; i<array.length(); i++){
+
+                JSONObject object = array.getJSONObject(i);
+
+                CakeData data = new CakeData(object.getString(TITLE),object.getString(DESCRIPTION),
+                        object.getString(IMAGE_LINK));
+
+                data_list.add(data);
         }
 
         @Override
