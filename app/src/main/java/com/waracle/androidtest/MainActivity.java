@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 View root = inflater.inflate(R.layout.list_item_layout, parent, false);
                 if (root != null) {
                     TextView title = (TextView) root.findViewById(R.id.title);
-                    TextView desc = (TextView) root.findViewById(R.id.desc);
+                    TextView desc = (TextView) root.findViewById(R.id.description);
                     ImageView image = (ImageView) root.findViewById(R.id.image);
                     try {
                         JSONObject object = (JSONObject) getItem(position);
