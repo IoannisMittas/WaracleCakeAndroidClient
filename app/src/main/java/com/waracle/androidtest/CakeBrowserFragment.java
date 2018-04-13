@@ -67,14 +67,9 @@ public class CakeBrowserFragment extends Fragment {
         cakeAdapter = new CakeAdapter(cakeList);
         recyclerView.setAdapter(cakeAdapter);
 
-        return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
         loadData();
+
+        return rootView;
     }
 
     @Override
