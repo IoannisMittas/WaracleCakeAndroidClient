@@ -69,8 +69,6 @@ public class CakeBrowserFragment extends Fragment {
         cakeAdapter = new CakeAdapter(cakeList);
         recyclerView.setAdapter(cakeAdapter);
 
-        //loadData();
-
         return rootView;
     }
 
@@ -121,8 +119,8 @@ public class CakeBrowserFragment extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
-            String jsonUrlString = null;
-            String cakeJsonString = null;
+            String jsonUrlString;
+            String cakeJsonString;
 
             try {
                 jsonUrlString = urls[0];
@@ -213,85 +211,4 @@ public class CakeBrowserFragment extends Fragment {
             }
         }
     }
-
-/**
- * Returns the charset specified in the Content-Type of this header,
- * or the HTTP default (ISO-8859-1) if none can be found.
- */
-//    public static String parseCharset(String contentType) {
-//        if (contentType != null) {
-//            String[] params = contentType.split(",");
-//            for (int i = 1; i < params.length; i++) {
-//                String[] pair = params[i].trim().split("=");
-//                if (pair.length == 2) {
-//                    if (pair[0].equals("charset")) {
-//                        return pair[1];
-//                    }
-//                }
-//            }
-//        }
-//        return "UTF-8";
-//    }
-
-//    private class MyAdapter extends BaseAdapter {
-//
-//        // Can you think of a better way to represent these items???
-//        private JSONArray mItems;
-//        private ImageLoader mImageLoader;
-//
-//        public MyAdapter() {
-//            this(new JSONArray());
-//        }
-//
-//        public MyAdapter(JSONArray items) {
-//            mItems = items;
-//            mImageLoader = new ImageLoader();
-//        }
-//
-//        @Override
-//        public int getCount() {
-//            return mItems.length();
-//        }
-//
-//        @Override
-//        public Object getItem(int position) {
-//            try {
-//                return mItems.getJSONObject(position);
-//            } catch (JSONException e) {
-//                Log.e("", e.getMessage());
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        public long getItemId(int position) {
-//            return 0;
-//        }
-//
-//        @SuppressLint("ViewHolder")
-//        @Override
-//        public View getView(int position, View convertView, ViewGroup parent) {
-//            LayoutInflater inflater = LayoutInflater.from(getActivity());
-//            View root = inflater.inflate(R.layout.list_item_layout, parent, false);
-//            if (root != null) {
-//                TextView title = (TextView) root.findViewById(R.id.title);
-//                TextView desc = (TextView) root.findViewById(R.id.description);
-//                ImageView image = (ImageView) root.findViewById(R.id.image);
-//                try {
-//                    JSONObject object = (JSONObject) getItem(position);
-//                    title.setText(object.getString("title"));
-//                    desc.setText(object.getString("desc"));
-//                    mImageLoader.load(object.getString("image"), image);
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            return root;
-//        }
-//
-//        public void setItems(JSONArray items) {
-//            mItems = items;
-//        }
-//    }
 }

@@ -28,12 +28,13 @@ public class CakeAdapter extends RecyclerView.Adapter<CakeAdapter.ViewHolder>{
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        Cake cake = cakeList.get(position);
+        holder.titleTextView.setText(cake.getTitle());
+        holder.descriptionTextView.setText(cake.getDescription());
 
-        holder.titleTextView.setText(cakeList.get(position).getTitle());
-        holder.descriptionTextView.setText(cakeList.get(position).getDescription());
+        new ImageLoader().load(cake.getImageLink(), holder.imageView);
 
         // TODO add image
-
         //Glide.with(context).load(cakeList.get(position).getImage_link()).into(holder.imageView);
 
     }

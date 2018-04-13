@@ -2,12 +2,20 @@ package com.waracle.androidtest;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -18,8 +26,7 @@ import java.security.InvalidParameterException;
 public class ImageLoader {
 
     private static final String TAG = ImageLoader.class.getSimpleName();
-
-    public ImageLoader() { /**/ }
+    private  ImageView imageView;
 
     /**
      * Simple function for loading a bitmap image from the web
@@ -35,43 +42,80 @@ public class ImageLoader {
         // Can you think of a way to improve loading of bitmaps
         // that have already been loaded previously??
 
-        try {
-            setImageView(imageView, convertToBitmap(loadImageData(url)));
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
+        // In the link below is described a way to reuse bitmaps.
+        // https://developer.android.com/topic/performance/graphics/manage-memory.html
+        // However, if it was allowed to use third party libraries,
+        // I would definitely use Glide or Picasso for image loading.
+
+        this.imageView = imageView;
+
+        new LoadImageAsyncTask().execute(url);
     }
 
-    private static byte[] loadImageData(String url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        InputStream inputStream = null;
-        try {
-            try {
-                // Read data from workstation
-                inputStream = connection.getInputStream();
-            } catch (IOException e) {
-                // Read the error from the workstation
-                inputStream = connection.getErrorStream();
-            }
 
-            // Can you think of a way to make the entire
-            // HTTP more efficient using HTTP headers??
-
-            return StreamUtils.readUnknownFully(inputStream);
-        } finally {
-            // Close the input stream if it exists.
-            StreamUtils.close(inputStream);
-
-            // Disconnect the connection
-            connection.disconnect();
-        }
-    }
-
-    private static Bitmap convertToBitmap(byte[] data) {
+    private Bitmap convertToBitmap(byte[] data) {
         return BitmapFactory.decodeByteArray(data, 0, data.length);
     }
 
-    private static void setImageView(ImageView imageView, Bitmap bitmap) {
+    private  void setImageView(byte[] imageBytes) {
+        Bitmap bitmap = convertToBitmap(imageBytes);
         imageView.setImageBitmap(bitmap);
+}
+
+    private class LoadImageAsyncTask extends AsyncTask<String, Void, byte[]> {
+
+        @Override
+        protected byte[] doInBackground(String... urls) {
+            if (urls.length == 0) {
+                return null;
+            }
+
+            HttpURLConnection urlConnection = null;
+
+            String imageUrlString;
+
+            try {
+                imageUrlString = urls[0];
+
+                URL url = new URL(imageUrlString);
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a byte array
+                InputStream inputStream = urlConnection.getInputStream();
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+
+                int nRead;
+                byte[] data = new byte[16384];
+
+                while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+
+               return buffer.toByteArray();
+
+            } catch (IOException e) {
+                Log.e(TAG, "Error ", e);
+                return null;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(byte[] imageBytes) {
+            super.onPostExecute(imageBytes);
+
+            setImageView(imageBytes);
+        }
     }
 }
