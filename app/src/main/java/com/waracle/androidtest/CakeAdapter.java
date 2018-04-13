@@ -31,12 +31,7 @@ public class CakeAdapter extends RecyclerView.Adapter<CakeAdapter.ViewHolder>{
         Cake cake = cakeList.get(position);
         holder.titleTextView.setText(cake.getTitle());
         holder.descriptionTextView.setText(cake.getDescription());
-
         new ImageLoader().load(cake.getImageLink(), holder.imageView);
-
-        // TODO add image
-        //Glide.with(context).load(cakeList.get(position).getImage_link()).into(holder.imageView);
-
     }
 
     @Override
@@ -62,9 +57,5 @@ public class CakeAdapter extends RecyclerView.Adapter<CakeAdapter.ViewHolder>{
             imageView = itemView.findViewById(R.id.image);
         }
     }
-
-
-
-
 
 }
